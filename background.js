@@ -1,7 +1,8 @@
-const MAX_CUES = 60;
 const MAX_TEXT_LENGTH = 1_000;
 const MAX_TITLE_LENGTH = 200;
 const MAX_ID_LENGTH = 100;
+
+let storageWriteQueue = Promise.resolve();
 
 void restrictStorageAccess();
 
@@ -15,20 +16,29 @@ chrome.runtime.onStartup.addListener(() => {
   void restrictStorageAccess();
 });
 
-chrome.runtime.onMessage.addListener((message, sender) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (
     message?.type === "SUBTITLE_CUE" &&
     isTrustedYouTubeSender(sender) &&
     isValidCue(message.cue)
   ) {
-    void storeCue(message.cue);
+    const pendingWrite = storageWriteQueue.then(() => storeCue(message.cue));
+    storageWriteQueue = pendingWrite.catch(() => undefined);
+    pendingWrite.then(
+      () => sendResponse({ stored: true }),
+      () => sendResponse({ stored: false })
+    );
+    return true;
   }
+
+  return false;
 });
 
 async function restrictStorageAccess() {
   await Promise.all([
     chrome.storage.local.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }),
-    chrome.storage.session.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" })
+    chrome.storage.session.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }),
+    chrome.storage.session.remove("cueHistory")
   ]);
 }
 
@@ -68,13 +78,5 @@ function isValidCue(cue) {
 }
 
 async function storeCue(cue) {
-  const { cueHistory = [] } = await chrome.storage.session.get("cueHistory");
-  const previous = cueHistory.at(-1);
-
-  if (previous?.text === cue.text && previous?.title === cue.title) {
-    return;
-  }
-
-  const nextHistory = [...cueHistory, cue].slice(-MAX_CUES);
-  await chrome.storage.session.set({ cueHistory: nextHistory, latestCue: cue });
+  await chrome.storage.session.set({ latestCue: cue });
 }

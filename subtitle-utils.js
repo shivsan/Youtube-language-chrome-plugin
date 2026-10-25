@@ -35,7 +35,19 @@
       .slice(0, 200);
   }
 
-  const api = { normalizeCueText, deduplicateLines, cleanYouTubeTitle };
+  function isProgressiveCue(previousValue, nextValue) {
+    const previous = normalizeCueText(previousValue).replace(/\n/g, " ");
+    const next = normalizeCueText(nextValue).replace(/\n/g, " ");
+
+    return Boolean(previous && next && next.startsWith(previous));
+  }
+
+  const api = {
+    normalizeCueText,
+    deduplicateLines,
+    cleanYouTubeTitle,
+    isProgressiveCue
+  };
   root.YouTubeLanguageUtils = api;
 
   if (typeof module !== "undefined" && module.exports) {

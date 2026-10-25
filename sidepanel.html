@@ -9,66 +9,43 @@
   <body>
     <header class="app-header">
       <div class="brand-mark" aria-hidden="true">Y</div>
-      <div>
-        <p class="eyebrow">LANGUAGE COMPANION</p>
+      <div class="app-header-copy">
+        <div class="brand-label-row">
+          <p class="eyebrow">LANGUAGE COMPANION</p>
+          <span id="learner-level-badge" class="level-badge" aria-label="German learner level">A1</span>
+        </div>
         <h1>Understand every line</h1>
       </div>
+      <button
+        id="translation-toggle"
+        class="translation-toggle"
+        type="button"
+        data-active="true"
+        aria-label="Stop live translation"
+        title="Stop live translation"
+      >
+        <span class="translation-toggle-icon" aria-hidden="true"></span>
+      </button>
     </header>
 
     <main>
-      <section class="setup-card" aria-labelledby="settings-heading">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">SETTINGS</p>
-            <h2 id="settings-heading">Translation</h2>
-          </div>
-          <span id="engine-status" class="status-pill">Not started</span>
-        </div>
-
-        <div class="language-grid">
-          <label>
-            Caption language
-            <select id="source-language"></select>
-          </label>
-          <span class="language-arrow" aria-hidden="true">→</span>
-          <label>
-            Translate to
-            <select id="target-language"></select>
-          </label>
-        </div>
-
-        <button id="start-translation" class="primary-button" type="button">
-          Start live translation
-        </button>
-        <p id="setup-message" class="helper-text" role="status">
-          Translation and explanations run on your device using Chrome's built-in AI.
-        </p>
-      </section>
-
       <section class="current-card" aria-labelledby="current-heading">
         <div class="section-heading">
           <div>
             <p class="eyebrow">NOW PLAYING</p>
-            <h2 id="current-heading">Current caption</h2>
+            <h2 id="current-heading">Current translation</h2>
           </div>
           <span id="playback-time" class="timestamp"></span>
         </div>
 
         <p id="empty-state" class="empty-state">
-          Start a YouTube video and enable captions. The current line will appear here.
+          Start a YouTube video and enable captions. The translation will appear here.
         </p>
 
         <div id="current-content" class="current-content" hidden>
-          <div class="text-block">
-            <span class="text-label">Original</span>
-            <p id="original-text" class="subtitle-text"></p>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="text-block">
+          <div class="text-block translation-block">
             <span class="text-label">Quick translation</span>
-            <p id="translated-text" class="translation-text">Start translation to see this line.</p>
+            <p id="translated-text" class="translation-text" tabindex="0">Waiting for the current caption…</p>
           </div>
 
           <button id="explain-button" class="secondary-button" type="button">
@@ -79,26 +56,100 @@
             <span class="text-label">Natural explanation</span>
             <p id="explanation-text"></p>
           </div>
+
+          <div class="divider"></div>
+
+          <div class="text-block original-block">
+            <span class="text-label">Original</span>
+            <p id="original-text" class="subtitle-text" tabindex="0"></p>
+          </div>
+
+          <div id="advanced-words" class="advanced-words" hidden>
+            <span id="advanced-words-label" class="text-label">ABOVE YOUR LEVEL</span>
+            <div id="advanced-word-chips" class="word-chips"></div>
+          </div>
         </div>
       </section>
 
-      <section class="history-section" aria-labelledby="history-heading">
+      <details class="setup-card">
+        <summary class="section-heading settings-summary">
+          <div>
+            <p class="eyebrow">SETTINGS</p>
+            <h2 id="settings-heading">Languages &amp; level</h2>
+          </div>
+          <div class="settings-summary-status">
+            <span id="engine-status" class="status-pill">Starting</span>
+            <span class="settings-chevron" aria-hidden="true">⌄</span>
+          </div>
+        </summary>
+
+        <div class="settings-body" aria-labelledby="settings-heading">
+          <div class="language-grid">
+            <label>
+              Caption language
+              <select id="source-language"></select>
+            </label>
+            <span class="language-arrow" aria-hidden="true">→</span>
+            <label>
+              Translate to
+              <select id="target-language"></select>
+            </label>
+          </div>
+
+          <div class="learning-settings">
+            <label>
+              My German level
+              <select id="learner-level">
+                <option value="A1">A1 · Beginner</option>
+                <option value="A2">A2 · Elementary</option>
+                <option value="B1">B1 · Intermediate</option>
+                <option value="B2">B2 · Upper intermediate</option>
+                <option value="C1">C1 · Advanced</option>
+                <option value="C2">C2 · Proficient</option>
+              </select>
+            </label>
+            <p id="learner-level-help" class="field-help">
+              German words above this estimated level are highlighted and saved locally.
+            </p>
+          </div>
+
+          <p id="setup-message" class="helper-text" role="status">
+            Translation and explanations use local Llama first, with Chrome's on-device AI as fallback.
+          </p>
+        </div>
+      </details>
+
+      <section class="vocabulary-section" aria-labelledby="vocabulary-heading">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">RECENT</p>
-            <h2 id="history-heading">Caption history</h2>
+            <p class="eyebrow">LEARNING</p>
+            <h2 id="vocabulary-heading">Words to learn</h2>
           </div>
-          <button id="clear-history" class="text-button" type="button">Clear</button>
+          <div class="section-actions">
+            <span id="vocabulary-count" class="item-count">0</span>
+            <button id="reset-known-vocabulary" class="text-button" type="button" hidden>
+              Reset known (0)
+            </button>
+            <button id="clear-vocabulary" class="text-button" type="button">Clear</button>
+          </div>
         </div>
-        <ol id="history-list" class="history-list"></ol>
+        <p id="vocabulary-empty" class="empty-list">
+          German words above your selected level will be collected here.
+        </p>
+        <ol id="vocabulary-list" class="vocabulary-list"></ol>
       </section>
+
     </main>
 
     <footer>
       <span class="privacy-dot" aria-hidden="true"></span>
-      Caption text stays in this Chrome session and is not uploaded by this extension.
+      Only the current caption stays in this Chrome session. Saved vocabulary stays locally.
     </footer>
 
+    <script src="cefr-german-data.js"></script>
+    <script src="cefr-utils.js"></script>
+    <script src="ollama-client.js"></script>
+    <script src="translation-control.js"></script>
     <script src="sidepanel.js"></script>
   </body>
 </html>

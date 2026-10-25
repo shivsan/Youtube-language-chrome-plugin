@@ -1,5 +1,10 @@
 (() => {
-  const { normalizeCueText, deduplicateLines, cleanYouTubeTitle } =
+  const {
+    normalizeCueText,
+    deduplicateLines,
+    cleanYouTubeTitle,
+    isProgressiveCue
+  } =
     globalThis.YouTubeLanguageUtils;
 
   const PRIMARY_SELECTOR = ".ytp-caption-segment";
@@ -9,6 +14,7 @@
   ];
 
   let lastSentText = "";
+  let activeCueId = "";
   let scanTimer = null;
 
   const observer = new MutationObserver(scheduleScan);
@@ -36,25 +42,38 @@
 
   function captureVisibleCue() {
     if (!isSupportedLocation()) {
-      lastSentText = "";
+      resetCaptureState();
       return;
     }
 
     const text = findVisibleSubtitle();
 
     if (!text) {
-      lastSentText = "";
+      resetCaptureState();
       return;
     }
 
     if (text === lastSentText) {
       return;
     }
-    lastSentText = text;
 
+    if (!activeCueId || !isProgressiveCue(lastSentText, text)) {
+      activeCueId = crypto.randomUUID();
+    }
+
+    lastSentText = text;
+    sendCue(text, activeCueId);
+  }
+
+  function resetCaptureState() {
+    lastSentText = "";
+    activeCueId = "";
+  }
+
+  function sendCue(text, id) {
     const video = document.querySelector("video");
     const cue = {
-      id: crypto.randomUUID(),
+      id,
       text,
       title: findTitle(),
       playbackSeconds: Number.isFinite(video?.currentTime)

@@ -3,7 +3,8 @@ const assert = require("node:assert/strict");
 const {
   normalizeCueText,
   deduplicateLines,
-  cleanYouTubeTitle
+  cleanYouTubeTitle,
+  isProgressiveCue
 } = require("../subtitle-utils.js");
 
 test("normalizes whitespace while preserving caption lines", () => {
@@ -16,4 +17,15 @@ test("removes duplicate rendered caption lines", () => {
 
 test("removes YouTube branding from a document title", () => {
   assert.equal(cleanYouTubeTitle("Example Video - YouTube"), "Example Video");
+});
+
+test("recognizes progressively rendered caption text", () => {
+  assert.equal(isProgressiveCue("I", "I am"), true);
+  assert.equal(isProgressiveCue("I am", "I am Siva"), true);
+  assert.equal(isProgressiveCue("I am\nSiva", "I am Siva today"), true);
+});
+
+test("distinguishes a new caption from a growing caption", () => {
+  assert.equal(isProgressiveCue("I am Siva", "Nice to meet you"), false);
+  assert.equal(isProgressiveCue("", "Nice to meet you"), false);
 });
