@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YouTube Language Companion</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand-mark" aria-hidden="true">Y</div>
+      <div>
+        <p class="eyebrow">LANGUAGE COMPANION</p>
+        <h1>Understand every line</h1>
+      </div>
+    </header>
+
+    <main>
+      <section class="setup-card" aria-labelledby="settings-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">SETTINGS</p>
+            <h2 id="settings-heading">Translation</h2>
+          </div>
+          <span id="engine-status" class="status-pill">Not started</span>
+        </div>
+
+        <div class="language-grid">
+          <label>
+            Caption language
+            <select id="source-language"></select>
+          </label>
+          <span class="language-arrow" aria-hidden="true">→</span>
+          <label>
+            Translate to
+            <select id="target-language"></select>
+          </label>
+        </div>
+
+        <button id="start-translation" class="primary-button" type="button">
+          Start live translation
+        </button>
+        <p id="setup-message" class="helper-text" role="status">
+          Translation and explanations run on your device using Chrome's built-in AI.
+        </p>
+      </section>
+
+      <section class="current-card" aria-labelledby="current-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">NOW PLAYING</p>
+            <h2 id="current-heading">Current caption</h2>
+          </div>
+          <span id="playback-time" class="timestamp"></span>
+        </div>
+
+        <p id="empty-state" class="empty-state">
+          Start a YouTube video and enable captions. The current line will appear here.
+        </p>
+
+        <div id="current-content" class="current-content" hidden>
+          <div class="text-block">
+            <span class="text-label">Original</span>
+            <p id="original-text" class="subtitle-text"></p>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="text-block">
+            <span class="text-label">Quick translation</span>
+            <p id="translated-text" class="translation-text">Start translation to see this line.</p>
+          </div>
+
+          <button id="explain-button" class="secondary-button" type="button">
+            Explain meaning &amp; idioms
+          </button>
+
+          <div id="explanation" class="explanation" hidden>
+            <span class="text-label">Natural explanation</span>
+            <p id="explanation-text"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="history-section" aria-labelledby="history-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">RECENT</p>
+            <h2 id="history-heading">Caption history</h2>
+          </div>
+          <button id="clear-history" class="text-button" type="button">Clear</button>
+        </div>
+        <ol id="history-list" class="history-list"></ol>
+      </section>
+    </main>
+
+    <footer>
+      <span class="privacy-dot" aria-hidden="true"></span>
+      Caption text stays in this Chrome session and is not uploaded by this extension.
+    </footer>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Language Companion",
+  "version": "0.2.0",
+  "description": "Understand the natural meaning, idioms, and tone of YouTube captions using on-device AI.",
+  "minimum_chrome_version": "138",
+  "permissions": [
+    "sidePanel",
+    "storage"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open YouTube Language Companion"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/watch*",
+        "https://www.youtube.com/shorts/*"
+      ],
+      "js": [
+        "subtitle-utils.js",
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "world": "ISOLATED"
+    }
+  ]
+}
