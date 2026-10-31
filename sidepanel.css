@@ -138,12 +138,6 @@ p {
   margin: 0;
 }
 
-h1 {
-  margin-top: 2px;
-  font-size: 17px;
-  letter-spacing: -0.02em;
-}
-
 h2 {
   margin-top: 3px;
   font-size: 15px;
@@ -335,7 +329,14 @@ footer {
 }
 
 .current-content {
-  margin-top: 16px;
+  position: relative;
+}
+
+.current-timestamp {
+  position: absolute;
+  z-index: 1;
+  top: 13px;
+  right: 13px;
 }
 
 .text-block {
@@ -380,11 +381,59 @@ footer {
   font-weight: 520;
 }
 
-.cefr-word {
+.original-word {
+  display: inline;
+  margin: 0;
+  padding: 0 1px;
+  border: 0;
+  border-bottom: 1px dotted rgb(183 183 192 / 55%);
   border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  line-height: inherit;
+}
+
+.original-word:hover {
+  background: rgb(255 255 255 / 9%);
+  color: var(--text);
+}
+
+.original-word:focus-visible {
+  border-bottom-color: transparent;
+  background: rgb(229 9 20 / 18%);
+  box-shadow: 0 0 0 2px rgb(229 9 20 / 55%);
+}
+
+.original-word.is-advanced {
   background: rgb(240 189 91 / 20%);
   box-shadow: 0 0 0 1px rgb(240 189 91 / 25%);
   color: #ffe1a6;
+}
+
+.original-word.is-saved {
+  border-bottom-color: rgb(85 214 158 / 70%);
+  background: rgb(85 214 158 / 14%);
+  color: #a5ebca;
+}
+
+.original-word.is-known {
+  border-bottom-color: transparent;
+  color: #777780;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.word-action-status {
+  height: 1.4em;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .advanced-words {
@@ -426,7 +475,7 @@ footer {
 }
 
 .translation-text {
-  height: 4.44em;
+  height: 8.88em;
   color: var(--text);
   font-size: 19px;
   font-weight: 680;
@@ -463,12 +512,66 @@ footer {
   padding: 7px 2px 0;
 }
 
-.section-actions {
-  display: flex;
-  flex-wrap: wrap;
+.vocabulary-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 4px;
+  margin-top: 11px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: rgb(20 20 23 / 88%);
+}
+
+.vocabulary-tab {
+  display: flex;
+  gap: 7px;
   align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 8px 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.vocabulary-tab:hover {
+  color: var(--text);
+}
+
+.vocabulary-tab[aria-selected="true"] {
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.vocabulary-action-status {
+  height: 1.4em;
+  margin: 5px 2px 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vocabulary-action-status:empty {
+  display: none;
+}
+
+.vocabulary-panel:focus {
+  outline: none;
+}
+
+.vocabulary-panel-actions {
+  display: flex;
   justify-content: flex-end;
+  min-height: 27px;
 }
 
 .item-count {
@@ -572,8 +675,37 @@ footer {
   color: var(--warning);
 }
 
-.vocabulary-known:hover {
+.vocabulary-known:hover,
+.vocabulary-known:focus-visible {
+  color: var(--success);
+}
+
+.vocabulary-remove:hover,
+.vocabulary-remove:focus-visible {
   color: #ff8990;
+}
+
+.known-vocabulary-item {
+  align-items: center;
+}
+
+.learn-again-button {
+  align-self: center;
+  padding: 6px 8px;
+  border: 1px solid rgb(85 214 158 / 32%);
+  border-radius: 8px;
+  background: rgb(85 214 158 / 9%);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.learn-again-button:hover {
+  border-color: rgb(85 214 158 / 55%);
+  background: rgb(85 214 158 / 16%);
+  color: #a5ebca;
 }
 
 .text-button {

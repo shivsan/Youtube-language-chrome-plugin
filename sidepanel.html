@@ -11,10 +11,9 @@
       <div class="brand-mark" aria-hidden="true">Y</div>
       <div class="app-header-copy">
         <div class="brand-label-row">
-          <p class="eyebrow">LANGUAGE COMPANION</p>
+          <h1 class="eyebrow">LANGUAGE COMPANION</h1>
           <span id="learner-level-badge" class="level-badge" aria-label="German learner level">A1</span>
         </div>
-        <h1>Understand every line</h1>
       </div>
       <button
         id="translation-toggle"
@@ -29,20 +28,13 @@
     </header>
 
     <main>
-      <section class="current-card" aria-labelledby="current-heading">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">NOW PLAYING</p>
-            <h2 id="current-heading">Current translation</h2>
-          </div>
-          <span id="playback-time" class="timestamp"></span>
-        </div>
-
+      <section class="current-card" aria-label="Current translation">
         <p id="empty-state" class="empty-state">
           Start a YouTube video and enable captions. The translation will appear here.
         </p>
 
         <div id="current-content" class="current-content" hidden>
+          <span id="playback-time" class="timestamp current-timestamp"></span>
           <div class="text-block translation-block">
             <span class="text-label">Quick translation</span>
             <p id="translated-text" class="translation-text" tabindex="0">Waiting for the current caption…</p>
@@ -62,6 +54,13 @@
           <div class="text-block original-block">
             <span class="text-label">Original</span>
             <p id="original-text" class="subtitle-text" tabindex="0"></p>
+            <p
+              id="word-action-status"
+              class="word-action-status"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            ></p>
           </div>
 
           <div id="advanced-words" class="advanced-words" hidden>
@@ -123,20 +122,72 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">LEARNING</p>
-            <h2 id="vocabulary-heading">Words to learn</h2>
-          </div>
-          <div class="section-actions">
-            <span id="vocabulary-count" class="item-count">0</span>
-            <button id="reset-known-vocabulary" class="text-button" type="button" hidden>
-              Reset known (0)
-            </button>
-            <button id="clear-vocabulary" class="text-button" type="button">Clear</button>
+            <h2 id="vocabulary-heading">Vocabulary</h2>
           </div>
         </div>
-        <p id="vocabulary-empty" class="empty-list">
-          German words above your selected level will be collected here.
-        </p>
-        <ol id="vocabulary-list" class="vocabulary-list"></ol>
+
+        <div class="vocabulary-tabs" role="tablist" aria-label="Vocabulary lists">
+          <button
+            id="learn-vocabulary-tab"
+            class="vocabulary-tab"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-controls="learn-vocabulary-panel"
+            tabindex="0"
+          >
+            Words to learn <span id="learn-vocabulary-count" class="item-count">0</span>
+          </button>
+          <button
+            id="known-vocabulary-tab"
+            class="vocabulary-tab"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="known-vocabulary-panel"
+            tabindex="-1"
+          >
+            Known <span id="known-vocabulary-count" class="item-count">0</span>
+          </button>
+        </div>
+
+        <p
+          id="vocabulary-action-status"
+          class="vocabulary-action-status"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        ></p>
+
+        <div
+          id="learn-vocabulary-panel"
+          class="vocabulary-panel"
+          role="tabpanel"
+          aria-labelledby="learn-vocabulary-tab"
+          tabindex="0"
+        >
+          <div class="vocabulary-panel-actions">
+            <button id="clear-vocabulary" class="text-button" type="button">Clear words to learn</button>
+          </div>
+          <p id="vocabulary-empty" class="empty-list">
+            Words above your level are collected automatically. Click any German word in Original to add it.
+          </p>
+          <ol id="vocabulary-list" class="vocabulary-list"></ol>
+        </div>
+
+        <div
+          id="known-vocabulary-panel"
+          class="vocabulary-panel"
+          role="tabpanel"
+          aria-labelledby="known-vocabulary-tab"
+          tabindex="0"
+          hidden
+        >
+          <p id="known-vocabulary-empty" class="empty-list">
+            Words you mark as known appear here. Use Learn again whenever you want to review one.
+          </p>
+          <ol id="known-vocabulary-list" class="vocabulary-list"></ol>
+        </div>
       </section>
 
     </main>
@@ -148,6 +199,7 @@
 
     <script src="cefr-german-data.js"></script>
     <script src="cefr-utils.js"></script>
+    <script src="subtitle-utils.js"></script>
     <script src="ollama-client.js"></script>
     <script src="translation-control.js"></script>
     <script src="sidepanel.js"></script>

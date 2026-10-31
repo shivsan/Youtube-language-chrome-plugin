@@ -2,10 +2,14 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   addKnownVocabularyKey,
+  classifyVocabularyWord,
   createGermanLexicon,
   filterKnownVocabulary,
   findAdvancedGermanWords,
+  findGermanWords,
   mergeSavedVocabulary,
+  removeKnownVocabularyKey,
+  resolveKnownVocabularyWord,
   sanitizeKnownVocabulary,
   toggleVocabularyImportance
 } = require("../cefr-utils.js");
@@ -15,6 +19,34 @@ const lexicon = createGermanLexicon([
   ["entscheiden", "B1", "to decide", "verb", ["entscheidet", "entschieden"]],
   ["unvermeidlich", "C1", "unavoidable", "adjective", []]
 ]);
+
+test("tokenizes every German word while resolving only bundled vocabulary metadata", () => {
+  const words = findGermanWords("Das Bier, Fantasie-Wort!", lexicon);
+
+  assert.deepEqual(
+    words.map(({ surface, lemma, level, recognized }) => ({
+      surface,
+      lemma,
+      level,
+      recognized
+    })),
+    [
+      { surface: "Das", lemma: "Das", level: null, recognized: false },
+      { surface: "Bier", lemma: "Bier", level: "A1", recognized: true },
+      {
+        surface: "Fantasie-Wort",
+        lemma: "Fantasie-Wort",
+        level: null,
+        recognized: false
+      }
+    ]
+  );
+  assert.deepEqual(words.map(({ start, end }) => ({ start, end })), [
+    { start: 0, end: 3 },
+    { start: 4, end: 8 },
+    { start: 10, end: 23 }
+  ]);
+});
 
 test("finds only German words above the selected CEFR level", () => {
   assert.deepEqual(
@@ -46,6 +78,35 @@ test("stores a word once per caption and increments it on a later caption", () =
   assert.equal(laterCue[0].encounterCount, 2);
   assert.equal(laterCue[0].lastSeenAt, 300);
   assert.deepEqual(laterCue[0].encounterCueIds, ["cue-1", "cue-2"]);
+});
+
+test("stores a manually selected unlisted word without inventing metadata", () => {
+  const [word] = findGermanWords("Fantasiewort", lexicon);
+  const saved = mergeSavedVocabulary([], [word], "cue-1", 100);
+
+  assert.deepEqual(saved, [
+    {
+      key: "fantasiewort",
+      lemma: "Fantasiewort",
+      level: null,
+      meaning: "",
+      partOfSpeech: "",
+      encounterCount: 1,
+      firstSeenAt: 100,
+      lastSeenAt: 100,
+      encounterCueIds: ["cue-1"],
+      important: false
+    }
+  ]);
+});
+
+test("classifies original words with known state taking precedence", () => {
+  const saved = [{ key: "bier" }];
+
+  assert.equal(classifyVocabularyWord(saved, [], "neu"), "available");
+  assert.equal(classifyVocabularyWord(saved, [], "bier"), "saved");
+  assert.equal(classifyVocabularyWord(saved, ["bier"], "bier"), "known");
+  assert.equal(classifyVocabularyWord(saved, ["bekannt"], "bekannt"), "known");
 });
 
 test("keeps an important saved word when the vocabulary limit is reached", () => {
@@ -139,4 +200,36 @@ test("sanitizes, deduplicates, and bounds known vocabulary keys", () => {
     sanitizeKnownVocabulary(["first", "second", "first", "third"], 2),
     ["first", "third"]
   );
+});
+
+test("removes exactly one known vocabulary key without mutating the input", () => {
+  const known = ["bier", "entscheiden", "unvermeidlich"];
+
+  assert.deepEqual(removeKnownVocabularyKey(known, "entscheiden"), [
+    "bier",
+    "unvermeidlich"
+  ]);
+  assert.deepEqual(known, ["bier", "entscheiden", "unvermeidlich"]);
+  assert.deepEqual(removeKnownVocabularyKey(known, "missing"), known);
+});
+
+test("resolves known keys from the bundled lexicon with an honest unlisted fallback", () => {
+  assert.deepEqual(resolveKnownVocabularyWord("biere", lexicon), {
+    key: "biere",
+    lemma: "Bier",
+    level: "A1",
+    meaning: "beer",
+    partOfSpeech: "noun",
+    recognized: true
+  });
+  assert.deepEqual(resolveKnownVocabularyWord("fantasiewort", lexicon), {
+    key: "fantasiewort",
+    lemma: "fantasiewort",
+    level: null,
+    meaning: "",
+    partOfSpeech: "",
+    recognized: false
+  });
+  assert.equal(resolveKnownVocabularyWord("", lexicon), null);
+  assert.equal(resolveKnownVocabularyWord("bier", null), null);
 });

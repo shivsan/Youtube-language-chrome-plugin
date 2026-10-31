@@ -76,6 +76,7 @@
       id,
       text,
       title: findTitle(),
+      videoKey: findVideoKey(),
       playbackSeconds: Number.isFinite(video?.currentTime)
         ? Math.round(video.currentTime * 10) / 10
         : null,
@@ -135,6 +136,16 @@
       .map((selector) => document.querySelector(selector))
       .find((node) => normalizeCueText(node?.textContent || ""));
     return cleanYouTubeTitle(playerTitle?.textContent || document.title || "YouTube");
+  }
+
+  function findVideoKey() {
+    if (location.pathname === "/watch") {
+      return new URLSearchParams(location.search).get("v")?.slice(0, 100) || "";
+    }
+    if (location.pathname.startsWith("/shorts/")) {
+      return location.pathname.split("/")[2]?.slice(0, 100) || "";
+    }
+    return "";
   }
 
   function isSupportedLocation() {

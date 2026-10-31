@@ -5,28 +5,32 @@ A local-first Chrome extension that reads the caption currently visible on YouTu
 ## Features
 
 - Captures only caption text visibly rendered on YouTube watch and Shorts pages.
-- Translates each new caption with local Ollama, falling back to Chrome's on-device Translator API when Ollama is unavailable.
+- Translates each new caption with the fast local `llama3.2:3b` model, falling back to Chrome's on-device Translator API when Ollama is unavailable.
+- Explains meanings and idioms with the more capable local `llama3.1:8b` model, falling back to Chrome's on-device Language Model API when Ollama is unavailable.
+- Uses a short, bounded in-memory caption window to reconnect overlapping rolling subtitles and give explanations enough textual context to assess idioms, sarcasm, irony, and ambiguity.
 - Puts the natural translation first in a stable reading area, with the original caption kept below as a compact reference for comparison and vocabulary study.
 - Provides a compact record/stop control to pause automatic translation without stopping the current caption, vocabulary, or manual explanations.
 - Explains intended meaning, idioms, fixed expressions, slang, tone, grammar, and cultural context with local Llama, falling back to Chrome's on-device Prompt API.
 - Lets learners select a persistent German level from A1 through C2 and shows it beside the extension name.
 - Highlights German words estimated above the selected level and keeps a separate, deduplicated **Words to learn** collection.
-- Lets learners star important words, mark familiar words as known so they stay out of the list, and reset known-word choices later; all choices remain local.
+- Makes every German word in **Original** clickable so learners can save any word manually, including words below their selected level. Words absent from the bundled index are labelled **unlisted** instead of receiving invented metadata.
+- Lets learners star important words, mark familiar words as known so they stay out of the list, and move individual words back with **Learn again**; all choices remain local.
 - Avoids misleading word-for-word translations. For example, German `Es ist nicht mein Bier` is explained as “It's none of my business” or “It's not my problem,” rather than literally as “It is not my beer.”
-- Keeps only the current caption in session storage; each new caption replaces it and closing Chrome clears it.
+- Keeps only the current caption in session storage. Recent context exists only in side-panel memory while the panel is open and is cleared on video changes, significant seeks, or stale gaps.
 - Does not fetch video, export transcripts, use analytics, or send caption text beyond the local device.
 
 ## Requirements
 
 - Desktop Google Chrome 138 or newer.
 - Captions must be enabled for the YouTube video.
-- [Ollama](https://ollama.com/download) with `llama3.1:8b` installed for the primary local AI engine.
+- [Ollama](https://ollama.com/download) with `llama3.2:3b` and `llama3.1:8b` installed for the primary local AI engines.
 
 Ollama runs the primary model on `127.0.0.1`. Chrome may download its own language or AI models only if the Ollama request fails and the fallback is needed. Chrome model availability varies by language, browser version, operating system, hardware, and free disk space.
 
-To install the local fallback model, start Ollama and run:
+To install both local models, start Ollama and run:
 
 ```sh
+ollama pull llama3.2:3b
 ollama pull llama3.1:8b
 ```
 
@@ -44,9 +48,11 @@ Translation starts automatically. Press the stop-square button in the header to 
 
 ## How it works
 
-The content script observes YouTube's rendered caption elements on `/watch` and `/shorts` pages. It emits only changed, visible caption cues to the extension service worker. The worker keeps only the latest cue in `chrome.storage.session`; it does not accumulate a caption history. The side panel uses the local Ollama API first and automatically tries Chrome's built-in AI APIs if Ollama is unavailable.
+The content script observes YouTube's rendered caption elements on `/watch` and `/shorts` pages. It emits only changed, visible caption cues to the extension service worker. The worker keeps only the latest cue in `chrome.storage.session`; it does not accumulate a caption history. While open, the side panel keeps at most four recent cues for 20 seconds in memory, merges meaningful rolling-caption overlap, and clears that context across video changes and significant seeks. The side panel uses the local Ollama API first and automatically tries Chrome's built-in AI APIs if Ollama is unavailable.
 
 For German captions, the side panel compares words with a bundled A1–C2 vocabulary index. CEFR labels are estimates rather than official ratings for every use of a word. Saved vocabulary contains the lemma, estimated level, short meaning, encounter count, importance choice, and random caption identifiers used for deduplication. Known-word choices are stored as normalized word keys so familiar words are not re-added. It does not retain the video title or subtitle sentence.
+
+Select any word in the **Original** sentence to add it directly to **Words to learn**. Recognized inflected forms use the bundled lemma and metadata. If the word is not in the bundled index, the visible form is saved with an **unlisted** level and meaning. Already-saved words do not duplicate, and words marked known remain excluded. The Vocabulary area has separate **Words to learn** and **Known** tabs; use **Learn again** on a known word to move only that word back for review.
 
 YouTube's interface is not a public caption integration API and can change. Caption selectors may need updating when YouTube changes its player. This project deliberately avoids intercepting media or private playback requests.
 
@@ -81,7 +87,7 @@ Project principles and non-negotiable privacy, security, UX, and testing constra
 
 ## Privacy
 
-Only the current caption is stored in Chrome session storage and processed on the device; each new caption replaces it. No caption history is retained. Language preferences, the selected German level, saved vocabulary, importance stars, and known-word choices are stored in Chrome local extension storage. Saved vocabulary remains until it is removed or cleared; known-word choices remain until **Reset known** is used. When Ollama is used, subtitle text is sent only to the loopback address `127.0.0.1:11434`; it does not leave the computer. No API key is used.
+Only the current caption is stored in Chrome session storage and processed on the device; each new caption replaces it. No caption history is persisted or displayed. A bounded recent-caption window exists only in side-panel memory while the panel is open so fragmented captions and tone can be interpreted coherently. Language preferences, the selected German level, saved vocabulary, importance stars, and known-word choices are stored in Chrome local extension storage. Saved vocabulary remains until it is removed or cleared; each known-word choice remains until **Learn again** moves that word back to the learning list. When Ollama is used, subtitle text is sent only to the loopback address `127.0.0.1:11434`; it does not leave the computer. No API key is used.
 
 ## Vocabulary data
 

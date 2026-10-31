@@ -70,6 +70,8 @@ function isValidCue(cue) {
     cue.text.length <= MAX_TEXT_LENGTH &&
     typeof cue.title === "string" &&
     cue.title.length <= MAX_TITLE_LENGTH &&
+    (cue.videoKey === undefined ||
+      (typeof cue.videoKey === "string" && cue.videoKey.length <= MAX_ID_LENGTH)) &&
     (cue.playbackSeconds === null ||
       (Number.isFinite(cue.playbackSeconds) && cue.playbackSeconds >= 0)) &&
     Number.isFinite(cue.capturedAt) &&

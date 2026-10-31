@@ -21,7 +21,12 @@ test("removes every caption-history surface from the side panel", () => {
   assert.doesNotMatch(sidepanel, /clearHistory|renderHistory|getPreviousContext/);
 });
 
-test("explanation prompts contain no previous-caption context", () => {
-  assert.doesNotMatch(ollamaClient, /PREVIOUS CONTEXT|previous captions|\bcontext\b/i);
-  assert.doesNotMatch(sidepanel, /PREVIOUS CONTEXT|previous captions|getPreviousContext/i);
+test("uses bounded in-memory context without restoring persistent caption history", () => {
+  assert.match(sidepanel, /createCaptionContext/);
+  assert.match(sidepanel, /captionContext\.addCue/);
+  assert.match(ollamaClient, /RECENT SUBTITLE PASSAGE/);
+  assert.match(sidepanel, /RECENT SUBTITLE PASSAGE/);
+  assert.match(sidepanel, /sarcasm, irony/);
+  assert.doesNotMatch(background, /captionContext|recentCues|contextWindow/);
+  assert.doesNotMatch(sidepanel, /chrome\.storage\.(?:local|session)\.(?:get|set)\([^)]*captionContext/s);
 });

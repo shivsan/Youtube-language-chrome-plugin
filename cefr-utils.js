@@ -47,9 +47,8 @@
     return lexicon;
   }
 
-  function findAdvancedGermanWords(text, learnerLevel, lexicon) {
-    const threshold = CEFR_LEVELS.indexOf(learnerLevel);
-    if (typeof text !== "string" || threshold < 0 || !(lexicon instanceof Map)) {
+  function findGermanWords(text, lexicon) {
+    if (typeof text !== "string" || !(lexicon instanceof Map)) {
       return [];
     }
 
@@ -59,24 +58,32 @@
     for (const match of text.matchAll(wordPattern)) {
       const surface = match[0];
       const entry = lexicon.get(normalizeGermanForm(surface));
-      if (!entry || CEFR_LEVELS.indexOf(entry.level) <= threshold) {
-        continue;
-      }
-
-      const key = normalizeGermanForm(entry.lemma);
+      const lemma = entry?.lemma || surface;
       matches.push({
-        key,
+        key: normalizeGermanForm(lemma),
         surface,
         start: match.index,
         end: match.index + surface.length,
-        lemma: entry.lemma,
-        level: entry.level,
-        meaning: entry.meaning,
-        partOfSpeech: entry.partOfSpeech
+        lemma,
+        level: entry?.level || null,
+        meaning: entry?.meaning || "",
+        partOfSpeech: entry?.partOfSpeech || "",
+        recognized: Boolean(entry)
       });
     }
 
     return matches;
+  }
+
+  function findAdvancedGermanWords(text, learnerLevel, lexicon) {
+    const threshold = CEFR_LEVELS.indexOf(learnerLevel);
+    if (typeof text !== "string" || threshold < 0 || !(lexicon instanceof Map)) {
+      return [];
+    }
+
+    return findGermanWords(text, lexicon).filter((word) => (
+      word.recognized && CEFR_LEVELS.indexOf(word.level) > threshold
+    ));
   }
 
   function sortSavedVocabulary(currentItems, maxEntries = 500) {
@@ -138,11 +145,52 @@
     return sanitizeKnownVocabulary([...keys, key], maxEntries);
   }
 
+  function removeKnownVocabularyKey(currentKeys, key, maxEntries = 500) {
+    const keys = sanitizeKnownVocabulary(currentKeys, maxEntries);
+    if (typeof key !== "string" || !keys.includes(key)) {
+      return keys;
+    }
+    return keys.filter((knownKey) => knownKey !== key);
+  }
+
+  function resolveKnownVocabularyWord(key, lexicon) {
+    if (
+      typeof key !== "string" ||
+      key.length === 0 ||
+      key.length > 100 ||
+      !(lexicon instanceof Map)
+    ) {
+      return null;
+    }
+
+    const entry = lexicon.get(normalizeGermanForm(key));
+    return {
+      key,
+      lemma: entry?.lemma || key,
+      level: entry?.level || null,
+      meaning: entry?.meaning || "",
+      partOfSpeech: entry?.partOfSpeech || "",
+      recognized: Boolean(entry)
+    };
+  }
+
   function filterKnownVocabulary(words, knownKeys) {
     const known = new Set(sanitizeKnownVocabulary(knownKeys));
     return (Array.isArray(words) ? words : []).filter((word) => (
       typeof word?.key === "string" && !known.has(word.key)
     ));
+  }
+
+  function classifyVocabularyWord(currentItems, knownKeys, key) {
+    if (typeof key !== "string" || key.length === 0) {
+      return "available";
+    }
+    if (sanitizeKnownVocabulary(knownKeys).includes(key)) {
+      return "known";
+    }
+    return (Array.isArray(currentItems) ? currentItems : []).some((item) => item?.key === key)
+      ? "saved"
+      : "available";
   }
 
   function mergeSavedVocabulary(currentItems, advancedWords, cueId, seenAt, maxEntries = 500) {
@@ -151,7 +199,7 @@
     let changed = false;
 
     for (const word of Array.isArray(advancedWords) ? advancedWords : []) {
-      if (!word?.key || !isCefrLevel(word.level)) {
+      if (!word?.key || (word.level !== null && !isCefrLevel(word.level))) {
         continue;
       }
 
@@ -201,13 +249,17 @@
     normalizeGermanForm,
     isCefrLevel,
     createGermanLexicon,
+    findGermanWords,
     findAdvancedGermanWords,
     mergeSavedVocabulary,
     sortSavedVocabulary,
     toggleVocabularyImportance,
     sanitizeKnownVocabulary,
     addKnownVocabularyKey,
-    filterKnownVocabulary
+    removeKnownVocabularyKey,
+    resolveKnownVocabularyWord,
+    filterKnownVocabulary,
+    classifyVocabularyWord
   };
   root.YouTubeLanguageCefrUtils = api;
 
